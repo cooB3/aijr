@@ -229,7 +229,7 @@
     function sendWhatsApp(id) {
         const tenant = tenants.find(t => t.id === id);
         if(tenant) {
-            const msg = `السلام عليكم الأستاذ    (${tenant.property}) وقدرها (${tenant.amount} ريال) سيكون بتاريخ ${tenant.dueDate}. نرجو التكرم بالتحويل وإرسال السند. وشكراً لتعاونكم.`;
+            const msg = `السلام عليكم تذكير بحلول الاجار لشهر الحالي نرجو التكرم بالتحويل وإرسال السند. وشكراً لتعاونكم.`;
             const encodedMsg = encodeURIComponent(msg);
             window.open(`https://wa.me/${tenant.phone}?text=${encodedMsg}`, '_blank');
         }
