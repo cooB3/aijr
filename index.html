@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام متابعة إيجارات المستأجرين</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: Tahoma, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: Tahoma, sans-serif;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: Tahoma, sans-serif;
+            transition: background 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .btn-success { background-color: var(--success); }
+        .btn-whatsapp { background-color: #25d366; }
+        .btn-danger { background-color: var(--danger); }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            text-align: right;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge-ok { background-color: #dcfce7; color: #166534; }
+        .badge-warning { background-color: #fef9c3; color: #854d0e; }
+        .badge-danger { background-color: #fee2e2; color: #991b1b; }
+        .actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .actions button {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        @media(max-width: 768px) {
+            table { display: block; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>نظام متابعة إيجارات المستأجرين</h1>
+        <p>إدارة الدفعات كل 3 أشهر والتنبيهات وإرسال رسائل التذكير بكل سهولة</p>
+    </header>
+
+    <!-- نموذج إضافة مستأجر جديد -->
+    <div class="card">
+        <h3>إضافة مستأجر جديد</h3>
+        <form id="tenantForm" onsubmit="addTenant(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>اسم المستأجر</label>
+                    <input type="text" id="name" required placeholder="مثال: محمد عبدالله">
+                </div>
+                <div class="form-group">
+                    <label>اسم أو رقم العقار/الشقة</label>
+                    <input type="text" id="property" required placeholder="مثال: شقة رقم 4">
+                </div>
+                <div class="form-group">
+                    <label>رقم الجوال (مع مفتاح الدولة)</label>
+                    <input type="text" id="phone" required placeholder="9665xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>قيمة الدفعة (3 أشهر)</label>
+                    <input type="number" id="amount" required placeholder="مثال: 7500">
+                </div>
+                <div class="form-group">
+                    <label>تاريخ الاستحقاق القادم</label>
+                    <input type="date" id="dueDate" required>
+                </div>
+            </div>
+            <button type="submit">إضافة المستأجر للنظام</button>
+        </form>
+    </div>
+
+    <!-- جدول عرض المستأجرين -->
+    <div class="card">
+        <h3>قائمة المستأجرين والدفعات</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>المستأجر</th>
+                        <th>العقار</th>
+                        <th>رقم الجوال</th>
+                        <th>مبلغ الدفعة</th>
+                        <th>تاريخ الاستحقاق القادم</th>
+                        <th>الحالة / المتبقي</th>
+                        <th>الإجراءات والخدمات</th>
+                    </tr>
+                </thead>
+                <tbody id="tenantsTableBody">
+                    <!-- سيتم تعبئتها ديناميكياً عبر الجافاسكربت -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // جلب البيانات المخزنة محلياً أو مصفوفة فارغة
+    let tenants = JSON.parse(localStorage.getItem('tenants_data')) || [];
+
+    function saveAndRender() {
+        localStorage.setItem('tenants_data', JSON.stringify(tenants));
+        renderTable();
+    }
+
+    function addTenant(e) {
+        e.preventDefault();
+        const newTenant = {
+            id: Date.now(),
+            name: document.getElementById('name').value,
+            property: document.getElementById('property').value,
+            phone: document.getElementById('phone').value,
+            amount: document.getElementById('amount').value,
+            dueDate: document.getElementById('dueDate').value
+        };
+
+        tenants.push(newTenant);
+        saveAndRender();
+        document.getElementById('tenantForm').reset();
+    }
+
+    function markAsPaid(id) {
+        if(confirm('هل أنت متأكد من تسجيل استلام المبلغ؟ سيتم ترحيل موعد الاستحقاق القادم 3 أشهر للأمام.')) {
+            const tenant = tenants.find(t => t.id === id);
+            if(tenant) {
+                let currentDueDate = new Date(tenant.dueDate);
+                // إضافة 3 أشهر تاريخية صحيحة
+                currentDueDate.setMonth(currentDueDate.getMonth() + 3);
+                
+                // تحويل التاريخ إلى صيغة YYYY-MM-DD
+                tenant.dueDate = currentDueDate.toISOString().split('T')[0];
+                saveAndRender();
+            }
+        }
+    }
+
+    function deleteTenant(id) {
+        if(confirm('هل تريد حذف هذا المستأجر نهائياً؟')) {
+            tenants = tenants.filter(t => t.id !== id);
+            saveAndRender();
+        }
+    }
+
+    function sendWhatsApp(id) {
+        const tenant = tenants.find(t => t.id === id);
+        if(tenant) {
+            const msg = `السلام عليكم الأستاذ ${tenant.name}، نذكركم بأن موعد استحقاق دفعة الإيجار (3 أشهر) لعقار (${tenant.property}) وقدرها (${tenant.amount} ريال) سيكون بتاريخ ${tenant.dueDate}. نرجو التكرم بالتحويل وإرسال السند. وشكراً لتعاونكم.`;
+            const encodedMsg = encodeURIComponent(msg);
+            window.open(`https://wa.me/${tenant.phone}?text=${encodedMsg}`, '_blank');
+        }
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('tenantsTableBody');
+        tbody.innerHTML = '';
+
+        if(tenants.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">لا توجد بيانات مستأجرين حالياً. أضف مستأجراً جديداً بالأسفل.</td></tr>`;
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        tenants.forEach(tenant => {
+            const due = new Date(tenant.dueDate);
+            due.setHours(0,0,0,0);
+            
+            const diffTime = due - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let badgeHtml = '';
+            if(diffDays < 0) {
+                badgeHtml = `<span class="badge badge-danger">متأخر (${Math.abs(diffDays)} يوم)</span>`;
+            } else if(diffDays <= 7) {
+                badgeHtml = `<span class="badge badge-warning">يحل خلال ${diffDays} أيام</span>`;
+            } else {
+                badgeHtml = `<span class="badge badge-ok">متبقي ${diffDays} يوم</span>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${tenant.name}</strong></td>
+                <td>${tenant.property}</td>
+                <td>${tenant.phone}</td>
+                <td>${tenant.amount} ريال</td>
+                <td>${tenant.dueDate}</td>
+                <td>${badgeHtml}</td>
+                <td>
+                    <div class="actions">
+                        <button class="btn-success" onclick="markAsPaid(${tenant.id})">تم الاستلام (+3 شهور)</button>
+                        <button class="btn-whatsapp" onclick="sendWhatsApp(${tenant.id})">تذكير واتساب</button>
+                        <button class="btn-danger" onclick="deleteTenant(${tenant.id})">حذف</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // تحميل الجدول عند فتح الصفحة
+    renderTable();
+</script>
+
+</body>
+</html>
